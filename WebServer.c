@@ -83,8 +83,111 @@ Request* NewRequest(int socket)
     int val = recv(socket, buffer, sizeof(buffer), 0);
 
     Request* rq = mallac(sizeof(Request));
+    char* line;
+    char* end_ln;
+    int lineCount = 0;
+    bool headerDone = false;
 
-    char* token = strtok(buffer, " ");
+    char* line = strtok_r(buffer, "\n", &end_ln);
+    while(line != NULL){
+        int wordCount = 0;
+
+        if(lineCount == 0)
+        {
+            //Start line here
+            char* end_wd;
+            char* word = strtok_r(line, " ", &end_wd);
+
+            while(word != NULL)
+            {
+                word = strtok_r(NULL, " ", &end_wd);
+                if(wordCount == 0)
+                {
+                    switch (word)
+                    {
+                    case "CONNECT":
+                        rq->methodToken = CONNECT;
+                        break;
+                    case "DELETE":
+                        rq->methodToken = DELETE;
+                        break;
+                    case "GET":
+                        rq->methodToken = GET;
+                        break;
+                    case "HEAD":
+                        rq->methodToken = HEAD;
+                        break;
+                    case "OPTIONS":
+                        rq->methodToken = OPTIONS;
+                        break;
+                    case "PATCH":
+                        rq->methodToken = PATCH;
+                        break;
+                    case "POST":
+                        rq->methodToken = POST;
+                        break;
+                    case "PUT":
+                        rq->methodToken = PUT;
+                        break;
+                    case "TRACE":
+                        rq->methodToken = TRACE;
+                        break;
+                    default:
+                        rq->methodToken = INVALID;
+                        break;
+                    }
+                }
+
+                if(wordCount == 1)
+                {
+                    rq->requestTarget = word;
+                }
+
+                if(wordCount == 2)
+                {
+                    rq->protocolVersion = word;
+                }
+
+                if(wordCount > 2)
+                {
+                    NewResponse(socket, )
+                }
+                wordCount++;
+            }
+            line = stdtok_r(NULL, "\n", &end_ln);
+            lineCount++;
+        }
+        else if(lineCount > 0 && line != "" && !(headerDone))
+        {
+            //Header fields here
+            char* end_wd;
+            char* word = strtok_r(line, " ", &end_wd);
+
+            while(word != NULL)
+            {
+                word = strtok_r(NULL, " ", &end_wd);
+                wordCount++;
+            }
+            line = stdtok_r(NULL, "\n", &end_ln);
+            lineCount++;
+        }
+        else
+        {
+            headerDone = true;
+        }
+
+        //Decide if need to read body and do so here
+        char* end_wd;
+        char* word = strtok_r(line, " ", &end_wd);
+
+        while(word != NULL)
+        {
+            word = strtok_r(NULL, " ", &end_wd);
+            wordCount++;
+        }
+        line = stdtok_r(NULL, "\n", &end_ln);
+        lineCount++;
+    }
 
     return 0;
 }
@@ -92,13 +195,44 @@ Request* NewRequest(int socket)
 char* GetValue(char* key)
 {
     unsigned int index = CalcHash(key);
-    return hashMap[index%256];
+    
+    return hashMap[index];
+}
+
+char* GetValueRecursive(char* key)
+{
+
 }
 
 void InsertValue(char* key, char* value)
 {
     unsigned int index = CalcHash(key);
-    strcpy(hashMap[index%256], value);
+    HashEntry he;
+
+    memcpy(he.key, key);
+    strcpy(he.value, value);
+
+    if(hashMap[index].key != "")
+    {
+        ResolveCollision(he, key);
+    }else
+    {
+        hashMap[index] = he;
+    }
+}
+
+HashEntry* ResolveCollision(HashEntry he, char* key)
+{
+    if(he.node != NULL)
+    {
+        if(he.key == key)
+        {   
+            return he.node;
+        }
+        FindLast(he.node);
+    }
+
+    return he.node;
 }
 
 unsigned int CalcHash(const char* str)
@@ -110,5 +244,5 @@ unsigned int CalcHash(const char* str)
         hash = hash * FNV_PRIME;
         hash = hash ^ str[i];
     }
-    return hash;
+    return hash%HASH_TABLE_SIZE;
 }

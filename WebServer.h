@@ -2,9 +2,16 @@
 #define WEB_SERVER_H
 
 #define PORT 80
+#define HASH_TABLE_SIZE 256
 
 bool running;
-char hashMap[256][50];
+HashEntry hashMap[HASH_TABLE_SIZE];
+
+struct {
+    char key[128];
+    char value[128];
+    HashEntry* node;
+}typedef HashEntry;
 
 enum {
     INVALID,
@@ -25,7 +32,7 @@ struct {
     char* protocolVersion;
 
     char hashMap[256][50];
-    
+
     char* body;
 } typedef Request;
 
