@@ -1,3 +1,5 @@
+#include "WebServer.h"
+
 #include <asm-generic/socket.h>
 #include <bits/pthreadtypes.h>
 #include <complex.h>
@@ -9,17 +11,6 @@
 #include <string.h>
 #include <netinet/in.h>
 #include <stdbool.h>
-
-#define PORT 80
-
-pthread_t connectionThread;
-bool running;
-
-void* newConnection(int socket);
-
-struct ConnectionArgs{
-    
-};
 
 int main()
 {
@@ -68,7 +59,11 @@ int main()
             perror("accept failed");
             exit(EXIT_FAILURE);
         }
-        pthread_create(&connectionThread, NULL, (void*)newConnection, &new_socket);
+        Request* rq;
+        if(rq = NewRequest(new_socket))
+        {
+            Response* rp = ProcessRequest(rq);
+        }
     }
 
     valread = read(new_socket, buffer, 1024-1);
@@ -82,7 +77,38 @@ int main()
     return 0;
 }
 
-void* newConnection(int socket)
+Request* NewRequest(int socket)
 {
+    char buffer[1024];
+    int val = recv(socket, buffer, sizeof(buffer), 0);
 
+    Request* rq = mallac(sizeof(Request));
+
+    char* token = strtok(buffer, " ");
+
+    return 0;
+}
+
+char* GetValue(char* key)
+{
+    unsigned int index = CalcHash(key);
+    return hashMap[index%256];
+}
+
+void InsertValue(char* key, char* value)
+{
+    unsigned int index = CalcHash(key);
+    strcpy(hashMap[index%256], value);
+}
+
+unsigned int CalcHash(const char* str)
+{
+    unsigned int hash = FNV_OFFSET_BASIS;
+    
+    for(int i = 0; i < 256; i++)
+    {
+        hash = hash * FNV_PRIME;
+        hash = hash ^ str[i];
+    }
+    return hash;
 }
