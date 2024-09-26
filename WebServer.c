@@ -1,16 +1,13 @@
 #include "WebServer.h"
 
 #include <asm-generic/socket.h>
-#include <bits/pthreadtypes.h>
 #include <complex.h>
 #include <sys/socket.h>
 #include <stdio.h>
-#include <pthread.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 #include <netinet/in.h>
-#include <stdbool.h>
 
 int main()
 {
@@ -60,7 +57,7 @@ int main()
             exit(EXIT_FAILURE);
         }
         Request* rq;
-        if(rq = NewRequest(new_socket))
+        if((rq = NewRequest(new_socket)))
         {
             Response* rp = ProcessRequest(rq);
         }
@@ -82,13 +79,13 @@ Request* NewRequest(int socket)
     char buffer[1024];
     int val = recv(socket, buffer, sizeof(buffer), 0);
 
-    Request* rq = mallac(sizeof(Request));
+    Request* rq = malloc(sizeof(Request));
     char* line;
     char* end_ln;
     int lineCount = 0;
     bool headerDone = false;
 
-    char* line = strtok_r(buffer, "\n", &end_ln);
+    line = strtok_r(buffer, "\n", &end_ln);
     while(line != NULL){
         int wordCount = 0;
 
@@ -103,7 +100,8 @@ Request* NewRequest(int socket)
                 word = strtok_r(NULL, " ", &end_wd);
                 if(wordCount == 0)
                 {
-                    switch (word)
+                    /*
+                    switch (*word)
                     {
                     case "CONNECT":
                         rq->methodToken = CONNECT;
@@ -136,6 +134,7 @@ Request* NewRequest(int socket)
                         rq->methodToken = INVALID;
                         break;
                     }
+                    */
                 }
 
                 if(wordCount == 1)
@@ -150,11 +149,11 @@ Request* NewRequest(int socket)
 
                 if(wordCount > 2)
                 {
-                    NewResponse(socket, )
+                    //NewResponse(socket, )
                 }
                 wordCount++;
             }
-            line = stdtok_r(NULL, "\n", &end_ln);
+            line = strtok_r(NULL, "\n", &end_ln);
             lineCount++;
         }
         else if(lineCount > 0 && line != "" && !(headerDone))
@@ -168,7 +167,7 @@ Request* NewRequest(int socket)
                 word = strtok_r(NULL, " ", &end_wd);
                 wordCount++;
             }
-            line = stdtok_r(NULL, "\n", &end_ln);
+            line = strtok_r(NULL, "\n", &end_ln);
             lineCount++;
         }
         else
@@ -185,18 +184,23 @@ Request* NewRequest(int socket)
             word = strtok_r(NULL, " ", &end_wd);
             wordCount++;
         }
-        line = stdtok_r(NULL, "\n", &end_ln);
+        line = strtok_r(NULL, "\n", &end_ln);
         lineCount++;
     }
 
     return 0;
 }
 
+Response* ProcessRequest(Request*)
+{
+    
+}
+
 char* GetValue(char* key)
 {
     unsigned int index = CalcHash(key);
     
-    return hashMap[index];
+    //return hashMap[index];
 }
 
 char* GetValueRecursive(char* key)
@@ -207,9 +211,9 @@ char* GetValueRecursive(char* key)
 void InsertValue(char* key, char* value)
 {
     unsigned int index = CalcHash(key);
-    HashEntry he;
+    struct HashEntry he;
 
-    memcpy(he.key, key);
+    memcpy(he.key, key, 256);
     strcpy(he.value, value);
 
     if(hashMap[index].key != "")
@@ -221,7 +225,7 @@ void InsertValue(char* key, char* value)
     }
 }
 
-HashEntry* ResolveCollision(HashEntry he, char* key)
+struct HashEntry* ResolveCollision(struct HashEntry he, char* key)
 {
     if(he.node != NULL)
     {
@@ -229,7 +233,7 @@ HashEntry* ResolveCollision(HashEntry he, char* key)
         {   
             return he.node;
         }
-        FindLast(he.node);
+        ResolveCollision(*he.node, key);
     }
 
     return he.node;

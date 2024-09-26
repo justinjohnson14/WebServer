@@ -1,17 +1,21 @@
 #ifndef WEB_SERVER_H
 #define WEB_SERVER_H
 
+#include <stdbool.h>
+
 #define PORT 80
 #define HASH_TABLE_SIZE 256
+#define FNV_OFFSET_BASIS 2166136261
+#define FNV_PRIME 16777619
 
-bool running;
-HashEntry hashMap[HASH_TABLE_SIZE];
-
-struct {
+struct HashEntry{
     char key[128];
     char value[128];
-    HashEntry* node;
-}typedef HashEntry;
+    struct HashEntry* node;
+};
+
+bool running;
+struct HashEntry hashMap[HASH_TABLE_SIZE];
 
 enum {
     INVALID,
@@ -46,5 +50,6 @@ void InsertValue(char*,char*);
 char* GetValue(char* key);
 Request* NewRequest(int socket);
 Response* ProcessRequest(Request*);
+struct HashEntry* ResolveCollision(struct HashEntry, char*);
 
 #endif
