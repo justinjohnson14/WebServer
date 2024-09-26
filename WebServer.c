@@ -208,3 +208,53 @@ char* ProcessRequest(Request* rq)
 
     return content;
 }
+
+char* GetValue(struct HashEntry he[], const char* k)
+{
+    unsigned int index = CalcHash(k);
+    if(he[index]->key != k)
+    {
+        //Traverse linked list
+    }
+
+    return he[index]->value;
+}
+
+void SetKey(struct HashEntry he[], const char* k, const char* v)
+{
+    unsigned int index = CalcHash(k)
+    if(he[index] == NULL)
+    {
+        he[index]->key = k;
+        he[index]->value = v;
+    }
+    else if(he[index]->key == k){
+        he[index]->value = v;
+    }
+    else
+    {
+        Traverse(he, k, v);
+    }
+}
+
+struct HashEntry* Traverse(struct HashEntry* he, const char* k, const char* v)
+{
+    if(he->key != k)
+    {
+        Traverse(he->link, k, v);
+    }
+    return he;
+}
+
+unsigned int CalcHash(const char* key)
+{
+    unsigned int hash = FNV_OFFSET_BASIS;
+
+    for (int i = 0; i < strlen(key); i++)
+    {
+        hash = hash * FNV_PRIME;
+        hash = hash ^ char[i];
+    }
+
+    return hash%256;
+}

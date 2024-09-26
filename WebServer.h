@@ -2,14 +2,14 @@
 #define WEB_SERVER_H
 
 #include <stdbool.h>
-#define _GNU_SOURCE
-#include <search.h>
 
 /* Constants */
 #define PORT 80
 #define HASH_TABLE_SIZE 256
 #define FNV_OFFSET_BASIS 2166136261
 #define FNV_PRIME 16777619
+
+typedef struct HashEntry;
 
 bool running;
 
@@ -26,9 +26,10 @@ enum {
     TRACE
 } typedef Method;
 
-struct HeaderHash {
+struct HashEntry{
     char* key;
     char* val;
+    struct HashEntry* link;
 };
 
 struct {
@@ -37,7 +38,7 @@ struct {
     char* protocolVersion;
 
     //struct hsearch_data* headers;
-    char headers[1024];
+    struct HashEntry headers[HASH_TABLE_SIZE];
 
     char body[1024];
 } typedef Request;
@@ -48,7 +49,7 @@ struct {
 
 /* Function declarations */
 
-unsigned int CalcHash(const char* str);
+unsigned int CalcHash(const char* key);
 void InsertValue(char*,char*);
 char* GetValue(char* key);
 Request* NewRequest(int socket);
