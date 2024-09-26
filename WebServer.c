@@ -2,9 +2,11 @@
 
 #include <asm-generic/socket.h>
 #include <complex.h>
+#include <search.h>
 #include <sys/socket.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <unistd.h>
 #include <string.h>
 #include <netinet/in.h>
@@ -17,12 +19,11 @@ void signal_handler(int signum)
 
 int main()
 {
-
     signal(SIGINT, signal_handler);
     running = true;
+
     int server_fd, new_socket;
     ssize_t valread;
-
     struct sockaddr_in address;
     int opt = 1;
     socklen_t addrlen = sizeof(address);
@@ -64,11 +65,9 @@ int main()
             perror("accept failed");
             exit(EXIT_FAILURE);
         }
-        Request* rq;
-        if((rq = NewRequest(new_socket)))
-        {
-            Response* rp = ProcessRequest(rq);
-        }
+        Request* rq = NewRequest(new_socket);
+        char* rp = ProcessRequest(rq);
+        send(new_socket, rp, strlen(rp), 0);
     }
 
     valread = read(new_socket, buffer, 1024-1);
@@ -88,12 +87,13 @@ Request* NewRequest(int socket)
     int val = recv(socket, buffer, sizeof(buffer), 0);
 
     Request* rq = malloc(sizeof(Request));
+    //hcreate_r(256, rq->headers);
     char* line;
     char* end_ln;
     int lineCount = 0;
     bool headerDone = false;
 
-    line = strtok_r(buffer, "\n", &end_ln);
+    line = strtok_r(buffer, "\r", &end_ln);
     while(line != NULL){
         int wordCount = 0;
 
@@ -105,44 +105,44 @@ Request* NewRequest(int socket)
 
             while(word != NULL)
             {
-                word = strtok_r(NULL, " ", &end_wd);
                 if(wordCount == 0)
                 {
-                    /*
-                    switch (*word)
+                    if(!(strcmp(word, "CONNECT")))
                     {
-                    case "CONNECT":
                         rq->methodToken = CONNECT;
-                        break;
-                    case "DELETE":
-                        rq->methodToken = DELETE;
-                        break;
-                    case "GET":
-                        rq->methodToken = GET;
-                        break;
-                    case "HEAD":
-                        rq->methodToken = HEAD;
-                        break;
-                    case "OPTIONS":
-                        rq->methodToken = OPTIONS;
-                        break;
-                    case "PATCH":
-                        rq->methodToken = PATCH;
-                        break;
-                    case "POST":
-                        rq->methodToken = POST;
-                        break;
-                    case "PUT":
-                        rq->methodToken = PUT;
-                        break;
-                    case "TRACE":
-                        rq->methodToken = TRACE;
-                        break;
-                    default:
-                        rq->methodToken = INVALID;
-                        break;
                     }
-                    */
+                    else if(!(strcmp(word, "DELETE")))
+                    {
+                        rq->methodToken = DELETE;
+                    }
+                    else if(!(strcmp(word, "GET")))
+                    {
+                        rq->methodToken = GET;
+                    }
+                    else if(!(strcmp(word, "HEAD")))
+                    {
+                        rq->methodToken = HEAD;
+                    }
+                    else if(!(strcmp(word, "OPTIONS")))
+                    {
+                        rq->methodToken = OPTIONS;
+                    }
+                    else if(!(strcmp(word, "PATCH")))
+                    {
+                        rq->methodToken = PATCH;
+                    }
+                    else if(!(strcmp(word, "POST")))
+                    {
+                        rq->methodToken = POST;
+                    }
+                    else if(!(strcmp(word, "PUT")))
+                    {
+                        rq->methodToken = PUT;
+                    }
+                    else
+                    {
+                        rq->methodToken = INVALID;
+                    }
                 }
 
                 if(wordCount == 1)
@@ -159,102 +159,52 @@ Request* NewRequest(int socket)
                 {
                     //NewResponse(socket, )
                 }
-                wordCount++;
-            }
-            line = strtok_r(NULL, "\n", &end_ln);
-            lineCount++;
-        }
-        else if(lineCount > 0 && line != "" && !(headerDone))
-        {
-            //Header fields here
-            char* end_wd;
-            char* word = strtok_r(line, " ", &end_wd);
-
-            while(word != NULL)
-            {
                 word = strtok_r(NULL, " ", &end_wd);
                 wordCount++;
             }
-            line = strtok_r(NULL, "\n", &end_ln);
-            lineCount++;
         }
-        else
+        else if(lineCount > 0 && !(headerDone))
+        {
+            //Header fields here
+            strcat(rq->headers, line);
+        }
+        else if(lineCount > 0 && !(strcmp(line, "\n")))
         {
             headerDone = true;
+            continue;
         }
-
-        //Decide if need to read body and do so here
-        char* end_wd;
-        char* word = strtok_r(line, " ", &end_wd);
-
-        while(word != NULL)
+        else //Do we need to read body?
         {
-            word = strtok_r(NULL, " ", &end_wd);
-            wordCount++;
+            strcat(rq->body, line);
         }
         line = strtok_r(NULL, "\n", &end_ln);
         lineCount++;
     }
 
-    return 0;
+    return rq;
 }
 
-Response* ProcessRequest(Request*)
+char* ProcessRequest(Request* rq)
 {
-
-}
-
-char* GetValue(char* key)
-{
-    unsigned int index = CalcHash(key);
-    
-    //return hashMap[index];
-}
-
-char* GetValueRecursive(char* key)
-{
-
-}
-
-void InsertValue(char* key, char* value)
-{
-    unsigned int index = CalcHash(key);
-    struct HashEntry he;
-
-    memcpy(he.key, key, 256);
-    strcpy(he.value, value);
-
-    if(hashMap[index].key != "")
+    if(rq->methodToken == GET)
     {
-        ResolveCollision(he, key);
-    }else
-    {
-        hashMap[index] = he;
-    }
-}
-
-struct HashEntry* ResolveCollision(struct HashEntry he, char* key)
-{
-    if(he.node != NULL)
-    {
-        if(he.key == key)
-        {   
-            return he.node;
-        }
-        ResolveCollision(*he.node, key);
+        printf("GET %s %s\n", rq->requestTarget, rq->protocolVersion);
+        printf("%s", rq->headers);
+        printf("%s", rq->body);
     }
 
-    return he.node;
-}
+    char* content = malloc(1024);
+    char buff[1024];
 
-unsigned int CalcHash(const char* str)
-{
-    unsigned int hash = FNV_OFFSET_BASIS;
-    
-    for(int i = 0; i < 256; i++)
-    {
-        hash = hash * FNV_PRIME;
-        hash = hash ^ str[i];
-    }
-    return hash%HASH_TABLE_SIZE;
+    char* header = "HTTP/1.1 200 OK\nContent-Type: text/html; charset=UTF-8\nDate: Wed, 25 Sep 2024 14:18:33 GMT\nLast-Modified: Thu, 17, Oct 2019 07:18:26 GMT\nContent-Length: 1024\n\n";
+
+    strcat(content, header);
+
+    FILE* fd = fopen("srv/index.html", "r");
+
+    fread(buff, sizeof(char), 1024, fd);
+
+    strcat(content, buff);
+
+    return content;
 }
