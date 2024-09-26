@@ -87,7 +87,7 @@ Request* NewRequest(int socket)
     int val = recv(socket, buffer, sizeof(buffer), 0);
 
     Request* rq = malloc(sizeof(Request));
-    //hcreate_r(256, rq->headers);
+    struct HashTable* ht = createHashTable();
     char* line;
     char* end_ln;
     int lineCount = 0;
@@ -209,54 +209,60 @@ char* ProcessRequest(Request* rq)
     return content;
 }
 
-char* GetValue(struct HashEntry he[], const char* k)
+struct HashEntry* createEntry(char* key, char* val)
+{
+    struct HashEntry* newEntry = (struct HashEntry*)malloc(sizeof(struct HashEntry));
+    newEntry->key = key;
+    newEntry->val = val;
+    newEntry->link-> = NULL;
+    return newEntry;
+}
+
+struct HashTable* createHashTable()
+{
+    struct HashTable* ht = (struct HashTable*)malloc(sizeof(struct HashTable));
+    ht->table = (struct HashEntry**)malloc(HASH_TABLE_SIZE * sizeof(struct HashEntry *));
+    for(int i = 0; i < HASH_TABLE_SIZE; i++)
+    {
+        ht->table[i] = NULL;
+    }
+    return ht;
+}
+
+void insert(struct HashTable* ht, char* k, char* v)
 {
     unsigned int index = CalcHash(k);
-    if(he[index]->key != k)
-    {
-        struct HashEntry* temp = Traverse(he[index]->&link, k);
-        return temp->val;
-    }
+    struct HashEntry* newEntry = createEntry(k,v);
 
-    return he[index]->val;
-}
-
-void SetKey(struct HashEntry he[], const char* k, const char* v)
-{
-    unsigned int index = CalcHash(k)
-    if(he[index]->val == NULL)
+    if(ht->table[index] == NULL)
     {
-        he[index]->key = k;
-        he[index]->val = v;
+        ht->table[index] = newEntry;
     }
-    else if(he[index]->key == k){
-        he[index]->val = v;
-    }
-    else
+    else 
     {
-        struct HashEntry* temp = Traverse(he[index]->&link, k);
-        temp->key = k;
-        temp->val = v;
+        struct HashEntry* temp = ht->table[index];
+        while(temp->next != NULL)
+        {
+            temp = temp->next;
+        }
+        temp->next = newEntry;
     }
 }
 
-struct HashEntry* Traverse(struct HashEntry** he, const char* k)
+char* search(struct HashTable* ht, char* k)
 {
-    if(*he == NULL)
-    {
-        *he = malloc(sizeof(struct HashEntry));
-        return *he;
-    }
+    int index = CalcHash(key);
+    struct HashEntry* temp = ht->table[index];
 
-    if(*he->key != k)
+    while(temp != NULL)
     {
-        Traverse(*he->link, k);
+        if(temp->key == k)
+        {
+            return temp->val;
+        }
+        temp = temp->next;
     }
-    else
-    {
-        *he = malloc(sizeof(struct HashEntry));
-        return *he;
-    }
+    return -1;
 }
 
 unsigned int CalcHash(const char* key)

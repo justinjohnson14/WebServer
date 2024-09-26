@@ -32,6 +32,10 @@ struct HashEntry{
     struct HashEntry* link = NULL;
 };
 
+struct HashTable {
+    struct HashEntry** table;
+};
+
 struct {
     Method methodToken;
     char* requestTarget;
