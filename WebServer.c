@@ -8,9 +8,17 @@
 #include <unistd.h>
 #include <string.h>
 #include <netinet/in.h>
+#include <signal.h>
+
+void signal_handler(int signum)
+{
+    running = false;
+}
 
 int main()
 {
+
+    signal(SIGINT, signal_handler);
     running = true;
     int server_fd, new_socket;
     ssize_t valread;
@@ -193,7 +201,7 @@ Request* NewRequest(int socket)
 
 Response* ProcessRequest(Request*)
 {
-    
+
 }
 
 char* GetValue(char* key)
