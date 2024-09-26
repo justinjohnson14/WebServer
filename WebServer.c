@@ -214,28 +214,29 @@ char* GetValue(struct HashEntry he[], const char* k)
     unsigned int index = CalcHash(k);
     if(he[index]->key != k)
     {
-        Traverse(he[index].link, k);
+        struct HashEntry* temp = Traverse(he[index]->&link, k);
+        return temp->val;
     }
 
-    return he[index]->value;
+    return he[index]->val;
 }
 
 void SetKey(struct HashEntry he[], const char* k, const char* v)
 {
     unsigned int index = CalcHash(k)
-    if(he[index]->value == NULL)
+    if(he[index]->val == NULL)
     {
         he[index]->key = k;
-        he[index]->value = v;
+        he[index]->val = v;
     }
     else if(he[index]->key == k){
-        he[index]->value = v;
+        he[index]->val = v;
     }
     else
     {
         struct HashEntry* temp = Traverse(he[index]->&link, k);
         temp->key = k;
-        temp->value = v;
+        temp->val = v;
     }
 }
 
