@@ -214,7 +214,7 @@ char* GetValue(struct HashEntry he[], const char* k)
     unsigned int index = CalcHash(k);
     if(he[index]->key != k)
     {
-        //Traverse linked list
+        Traverse(he[index].link, k);
     }
 
     return he[index]->value;
@@ -223,7 +223,7 @@ char* GetValue(struct HashEntry he[], const char* k)
 void SetKey(struct HashEntry he[], const char* k, const char* v)
 {
     unsigned int index = CalcHash(k)
-    if(he[index] == NULL)
+    if(he[index]->value == NULL)
     {
         he[index]->key = k;
         he[index]->value = v;
@@ -233,17 +233,29 @@ void SetKey(struct HashEntry he[], const char* k, const char* v)
     }
     else
     {
-        Traverse(he, k, v);
+        struct HashEntry* temp = Traverse(he[index]->&link, k);
+        temp->key = k;
+        temp->value = v;
     }
 }
 
-struct HashEntry* Traverse(struct HashEntry* he, const char* k, const char* v)
+struct HashEntry* Traverse(struct HashEntry** he, const char* k)
 {
-    if(he->key != k)
+    if(*he == NULL)
     {
-        Traverse(he->link, k, v);
+        *he = malloc(sizeof(struct HashEntry));
+        return *he;
     }
-    return he;
+
+    if(*he->key != k)
+    {
+        Traverse(*he->link, k);
+    }
+    else
+    {
+        *he = malloc(sizeof(struct HashEntry));
+        return *he;
+    }
 }
 
 unsigned int CalcHash(const char* key)

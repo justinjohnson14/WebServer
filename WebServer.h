@@ -27,9 +27,9 @@ enum {
 } typedef Method;
 
 struct HashEntry{
-    char* key;
-    char* val;
-    struct HashEntry* link;
+    char* key = NULL;
+    char* val = NULL;
+    struct HashEntry* link = NULL;
 };
 
 struct {
