@@ -1,0 +1,13 @@
+GET /contact http/1.1
+Host: example.com
+User-Agent: curl/8.6.0
+Accept: */*
+
+{
+    "status": "ok",
+    "extended": true,
+    "results": [
+        {"value": 0, "type": "int64"},
+        {"value": 1.0e+3, "type": "decimal"}
+    ]
+}
