@@ -163,15 +163,20 @@ Request* NewRequest(int socket)
                 wordCount++;
             }
         }
-        else if(lineCount > 0 && !(headerDone))
-        {
-            //Header fields here
-            strcat(rq->headers, line);
-        }
         else if(lineCount > 0 && !(strcmp(line, "\n")))
         {
             headerDone = true;
             continue;
+        }
+        else if(lineCount > 0 && !(headerDone))
+        {
+            //Header fields here
+            char* k;
+            char* v;
+            char* end;
+            k = strtok_r(line, ":", &end);
+            v = strtok_r(NULL, "\n", &end);
+            insert(ht, k, v);
         }
         else //Do we need to read body?
         {
