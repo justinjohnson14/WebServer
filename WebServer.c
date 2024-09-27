@@ -214,7 +214,7 @@ struct HashEntry* createEntry(char* key, char* val)
     struct HashEntry* newEntry = (struct HashEntry*)malloc(sizeof(struct HashEntry));
     newEntry->key = key;
     newEntry->val = val;
-    newEntry->link-> = NULL;
+    newEntry->link = NULL;
     return newEntry;
 }
 
@@ -241,17 +241,17 @@ void insert(struct HashTable* ht, char* k, char* v)
     else 
     {
         struct HashEntry* temp = ht->table[index];
-        while(temp->next != NULL)
+        while(temp->link != NULL)
         {
-            temp = temp->next;
+            temp = temp->link;
         }
-        temp->next = newEntry;
+        temp->link = newEntry;
     }
 }
 
 char* search(struct HashTable* ht, char* k)
 {
-    int index = CalcHash(key);
+    int index = CalcHash(k);
     struct HashEntry* temp = ht->table[index];
 
     while(temp != NULL)
@@ -260,9 +260,9 @@ char* search(struct HashTable* ht, char* k)
         {
             return temp->val;
         }
-        temp = temp->next;
+        temp = temp->link;
     }
-    return -1;
+    return "";
 }
 
 unsigned int CalcHash(const char* key)
@@ -272,7 +272,7 @@ unsigned int CalcHash(const char* key)
     for (int i = 0; i < strlen(key); i++)
     {
         hash = hash * FNV_PRIME;
-        hash = hash ^ char[i];
+        hash = hash ^ key[i];
     }
 
     return hash%256;
