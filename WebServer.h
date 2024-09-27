@@ -12,7 +12,7 @@
 
 bool running;
 
-enum {
+enum{
     INVALID,
     CONNECT,
     DELETE,
@@ -26,9 +26,9 @@ enum {
 } typedef Method;
 
 struct HashEntry{
-    char* key = NULL;
-    char* val = NULL;
-    struct HashEntry* link = NULL;
+    char* key;
+    char* val;
+    struct HashEntry* link;
 };
 
 struct HashTable {

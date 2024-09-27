@@ -70,12 +70,6 @@ int main()
         send(new_socket, rp, strlen(rp), 0);
     }
 
-    valread = read(new_socket, buffer, 1024-1);
-
-    printf("%s\n", buffer);
-    //send(new_socket, hello, strlen(hello), 0);
-    //printf("Hello message sent\n");
-
     close(new_socket);
     close(server_fd);
     return 0;
@@ -185,6 +179,10 @@ Request* NewRequest(int socket)
         line = strtok_r(NULL, "\n", &end_ln);
         lineCount++;
     }
+
+    FILE* fp = fopen("request.txt", "w+");
+
+    
 
     return rq;
 }
